@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* Define Nexa font faces */
+@font-face {
+  font-family: 'Nexa';
+  src: url('/nexa-extra-light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nexa';
+  src: url('/nexa-heavy.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --font-nexa: 'Nexa', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-nexa);
+  font-weight: 300;
+}
+
+/* Utility classes for Nexa fonts */
+.font-nexa-light {
+  font-family: var(--font-nexa);
+  font-weight: 300;
+}
+
+.font-nexa-heavy {
+  font-family: var(--font-nexa);
+  font-weight: 900;
+}

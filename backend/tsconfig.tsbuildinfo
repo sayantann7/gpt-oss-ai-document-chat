@@ -1,0 +1,1 @@
+{"root":["./src/config.ts","./src/file.ts","./src/index.ts","./src/server.ts","./src/test.ts","./src/services/documentService.ts","./src/services/embeddingService.ts","./src/services/queryService.ts"],"version":"5.8.3"}
