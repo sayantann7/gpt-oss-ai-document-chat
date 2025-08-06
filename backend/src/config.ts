@@ -12,9 +12,15 @@ let embeddingPipeline: any = null;
 
 export async function getEmbeddingPipeline() {
   if (!embeddingPipeline) {
-    // Use dynamic import for ES modules
-    const { pipeline } = await import('@xenova/transformers');
-    embeddingPipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    try {
+      // Use eval to avoid TypeScript compilation issues
+      const importTransformers = new Function('return import("@xenova/transformers")');
+      const transformers = await importTransformers();
+      embeddingPipeline = await transformers.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    } catch (error) {
+      console.error('Failed to load transformers pipeline:', error);
+      throw new Error('Could not initialize embedding pipeline');
+    }
   }
   return embeddingPipeline;
 }
