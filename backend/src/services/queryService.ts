@@ -50,7 +50,7 @@ export class QueryService {
             // Search for relevant documents with a smaller initial limit
             const { data: matchData, error: matchError } = await supabase.rpc('match_documents', {
                 query_embedding: queryEmbedding,
-                match_threshold: 0.50,
+                match_threshold: 0.20,
                 match_count: documentName ? 10 : 5 // Get more results if filtering by document
             });
 
