@@ -253,7 +253,7 @@ async function processSingleChunkForExamples(content: string, chunkNumber?: numb
                 content: content,
             },
         ],
-        max_tokens: 100000,
+        max_tokens: 10000000,
     });
 
     return response.choices[0].message.content ?? "";
@@ -391,7 +391,7 @@ async function queryEmbeddedChunks(query: string, fewShotExamples: string): Prom
                 content: `Answer the question based on the following context:\n${JSON.stringify(data)}\n\nQuestion: ${query}`
             }
         ],
-        max_tokens: 100000,
+        max_tokens: 100000000,
     });
 
     return queryResponse.choices[0].message.content ?? "";
@@ -454,7 +454,7 @@ Generate the question-answer pairs:`;
                 content: prompt
             }
         ],
-        max_tokens: 1000,
+        max_tokens: 10000000,
     });
 
     return response.choices[0].message.content ?? "";
