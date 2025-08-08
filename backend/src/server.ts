@@ -355,17 +355,21 @@ app.post('/hackrx/run', authenticateToken, async (req, res) => {
             // Process document and store embeddings
             await documentService.processDocument(pdfContent, tempFileName, tempFilePath);
             
-            // Process all questions
-            const answers = [];
-            for (const question of questions) {
-                try {
-                    const result = await queryService.queryDocuments(question, tempFileName);
-                    answers.push(result.answer);
-                } catch (error: any) {
-                    console.error(`Error processing question "${question}":`, error);
-                    answers.push("I couldn't find an answer to this question in the document.");
-                }
-            }
+            // Process all questions in parallel for faster response
+            console.log(`Processing ${questions.length} questions in parallel...`);
+            const answers = await Promise.all(
+                questions.map(async (question, index) => {
+                    try {
+                        console.log(`Processing question ${index + 1}/${questions.length}: "${question}"`);
+                        const result = await queryService.queryDocuments(question, tempFileName);
+                        return result.answer;
+                    } catch (error: any) {
+                        console.error(`Error processing question "${question}":`, error);
+                        return "I couldn't find an answer to this question in the document.";
+                    }
+                })
+            );
+            console.log(`Completed processing all ${questions.length} questions.`);
             
             // Clean up: delete temporary file and document data
             if (fs.existsSync(tempFilePath)) {
