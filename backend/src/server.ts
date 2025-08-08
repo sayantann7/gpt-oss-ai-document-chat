@@ -309,20 +309,20 @@ const authenticateToken = (req: express.Request, res: express.Response, next: ex
 // HackRX endpoint for document processing and multi-question answering
 app.post('/hackrx/run', authenticateToken, async (req, res) => {
     try {
-        const { document_url, questions } = req.body;
+        const { documents, questions } = req.body;
         
         // Validate request body
-        if (!document_url || !questions || !Array.isArray(questions)) {
+        if (!documents || !questions || !Array.isArray(questions)) {
             return res.status(400).json({ 
-                error: 'Invalid request body. Required: document_url (string) and questions (array)' 
+                error: 'Invalid request body. Required: documents (string) and questions (array)' 
             });
         }
 
-        console.log(`HackRX: Processing document from URL: ${document_url}`);
+        console.log(`HackRX: Processing document from URL: ${documents}`);
         console.log(`HackRX: Number of questions: ${questions.length}`);
 
         // Download document from URL
-        const response = await fetch(document_url);
+        const response = await fetch(documents);
         if (!response.ok) {
             return res.status(400).json({ 
                 error: `Failed to download document from URL: ${response.statusText}` 
