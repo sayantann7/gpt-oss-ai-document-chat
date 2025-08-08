@@ -10,6 +10,15 @@ export const hfClient = new InferenceClient(process.env.HF_TOKEN);
 /** Local embedding model using Transformers.js */
 let embeddingPipeline: any = null;
 
+/**
+ * Initializes and retrieves the embedding pipeline using the Xenova transformers library.
+ * @example
+ * getEmbeddingPipeline()
+ * Returns the initialized embedding pipeline object for feature extraction.
+ * @async
+ * @param {void} - No parameters are required for this function.
+ * @returns {Promise<Object>} Returns the embedding pipeline object once initialized.
+ */
 export async function getEmbeddingPipeline() {
   if (!embeddingPipeline) {
     try {

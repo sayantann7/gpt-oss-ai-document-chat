@@ -77,6 +77,14 @@ export default function Home() {
     }
   };
 
+  /**
+   * Processes and uploads a selected PDF document to the server.
+   * @example
+   * sync()
+   * // Returns a message indicating success or failure of the upload and document processing.
+   * @param {File|null} selectedFile - The selected PDF document file to be uploaded.
+   * @returns {void} Sets messages about the status of the upload and processing operation.
+   */
   const handleFileUpload = async () => {
     if (!selectedFile) {
       setMessage('Please select a file');
@@ -112,6 +120,13 @@ export default function Home() {
     }
   };
 
+  /**
+   * Processes a document by sending its file name to the server and updates the UI based on the server's response.
+   * @example
+   * sync()
+   * "✅ Document processed successfully! 3 chunks created." or "❌ Error: ..."
+   * @returns {void} Does not return a value, but updates UI elements such as loading state and message display, based on the processing result.
+   */
   const handleProcessExisting = async () => {
     if (!fileName.trim()) {
       setMessage('Please enter a file name');
@@ -147,6 +162,14 @@ export default function Home() {
     }
   };
 
+  /**
+   * Executes a query and updates the state with the result or error message.
+   * @example
+   * sync()
+   * undefined
+   * @param {string} query - The query string to be searched. Must not be empty.
+   * @returns {void} This function does not return a value but updates the component state.
+   */
   const handleQuery = async () => {
     if (!query.trim()) {
       setMessage('Please enter a query');
@@ -186,6 +209,15 @@ export default function Home() {
     }
   };
 
+  /**
+   * Deletes a document by its name after confirmation and updates the UI accordingly.
+   * @example
+   * sync("exampleDocument")
+   * // Prompts confirmation dialog, proceeds with deletion if confirmed, 
+   * // then displays success or error message based on response, and updates the document list and statistics.
+   * @param {string} docName - The name of the document to be deleted.
+   * @returns {void} No return value. Performs asynchronous operations to delete a document and update UI states.
+   */
   const handleDeleteDocument = async (docName: string) => {
     if (!confirm(`Are you sure you want to delete "${docName}" and all its data?`)) {
       return;
@@ -214,6 +246,14 @@ export default function Home() {
   };
 
   // Helper function to format query results with proper styling
+  /**
+   * Processes a text input to create formatted React JSX elements, handling 'think' tags and formatting paragraphs and lists.
+   * @example
+   * formatText("Sample text including <think>thoughts</think> and **headings**")
+   * // Returns formatted JSX elements including div blocks for thoughts and formatted headings and lists
+   * @param {string} text - The string containing the text to format.
+   * @returns {JSX.Element} Returns a JSX element containing formatted text.
+   */
   const formatQueryResult = (text: string) => {
     if (!text) return null;
 
@@ -348,6 +388,14 @@ export default function Home() {
   };
 
   // Helper function to format inline content (bold, italics, code, etc.)
+  /**
+   * Formats a given text string by applying specific HTML styles to elements such as bold text, code snippets, arrows, special symbols, number ranges, and binary/hex numbers.
+   * @example
+   * formatText("Here is **bold**, here is a `code`, and here is a range 1 … 10.")
+   * Returns: A JSX element with styled HTML: <span dangerouslySetInnerHTML={{ __html: formatted }} />
+   * @param {string} text - The text string to be formatted. Must be non-empty to apply styles.
+   * @returns {JSX.Element} Returns a JSX element that contains the HTML-formatted text with specific styling applied.
+   */
   const formatInlineContent = (text: string) => {
     if (!text) return text;
     

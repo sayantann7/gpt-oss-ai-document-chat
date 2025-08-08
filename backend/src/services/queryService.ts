@@ -13,6 +13,15 @@ export class QueryService {
     }
 
     // Limit context to fit within token limits
+    /**
+     * Limits the size of a given context by token count and truncates content if necessary.
+     * @example
+     * limitContextSize([{ content: 'some text' }, { content: 'more content' }], 15000)
+     * [{ content: 'some text' }, { content: 'more content truncated...' }]
+     * @param {any[]} context - Array of document objects with 'content' as a property.
+     * @param {number} [maxTokens=15000] - Maximum number of tokens allowed in the context.
+     * @returns {any[]} Array of documents with content possibly truncated to fit within the token limit.
+     */
     private limitContextSize(context: any[], maxTokens: number = 15000): any[] {
         let totalTokens = 0;
         const limitedContext: any[] = [];
@@ -40,6 +49,15 @@ export class QueryService {
         return limitedContext;
     }
 
+    /**
+     * Executes a document query and returns matching results based on the query embedding and optional document name filter.
+     * @example
+     * queryDocuments('find this text', 'documentName')
+     * Promise<QueryResult> containing relevant document chunks.
+     * @param {string} query - The query string used to search for document matches.
+     * @param {string=} documentName - Optional name of the document to filter the search results.
+     * @returns {Promise<QueryResult>} Promise containing the matching results from the document search.
+     */
     async queryDocuments(query: string, documentName?: string): Promise<QueryResult> {
         try {
             // Get query embedding
@@ -75,6 +93,16 @@ export class QueryService {
         }
     }
 
+    /**
+     * Generates an answer to a query using provided context and optional few-shot examples.
+     * @example
+     * generateAnswer("What is AI?", [{content: "AI is the simulation of human intelligence in machines."}], "intro_document")
+     * Returns an object with answer, sources, and confidence score.
+     * @param {string} query - The query for which an answer is to be generated.
+     * @param {Array} context - An array of document objects containing content relevant to the query.
+     * @param {string} [documentName] - Name of the document to fetch few-shot examples from, if available.
+     * @returns {Promise<QueryResult>} A promise that resolves to an object containing the generated answer, sources of information, and a confidence score.
+     */
     private async generateAnswer(query: string, context: any[], documentName?: string): Promise<QueryResult> {
         try {
             // Get few-shot examples if document name is provided (but limit their size)
@@ -195,6 +223,15 @@ export class QueryService {
         }
     }
 
+    /**
+     * Calculates the confidence level of a query based on the context provided.
+     * @example
+     * calculateConfidence([{similarity: 0.8, content: 'text'}, {similarity: 0.6, content: 'more text'}], 'search query')
+     * // Returns 0.75
+     * @param {Array<object>} context - An array of context objects containing similarity scores and content length information.
+     * @param {string} query - The query string for which the confidence level is calculated.
+     * @returns {number} The calculated confidence score rounded to two decimal places.
+     */
     private calculateConfidence(context: any[], query: string): number {
         if (!context || context.length === 0) return 0;
 
@@ -214,6 +251,16 @@ export class QueryService {
         return Math.round(confidence * 100) / 100; // Round to 2 decimal places
     }
 
+    /**
+     * Searches for chunks similar to the given query within specified documents.
+     * @example
+     * searchSimilarChunks("example query", "Document1", 5)
+     * Returns an array of matching document chunks.
+     * @param {string} query - The query string to search for similar chunks.
+     * @param {string} [documentName] - Optional name of the document to filter results.
+     * @param {number} [limit=5] - The maximum number of similar chunks to return.
+     * @returns {Promise<any[]>} A promise that resolves to an array of similar chunks.
+     */
     async searchSimilarChunks(query: string, documentName?: string, limit: number = 5): Promise<any[]> {
         try {
             // Use local embedding model instead of OpenAI
