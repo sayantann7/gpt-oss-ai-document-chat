@@ -42,6 +42,16 @@ export class DocumentService {
         return chunks;
     }
 
+    /**
+     * Processes a PDF document to extract embeddings and generate few-shot examples, ensuring the document is not already processed.
+     * @example
+     * processDocument("pdfContentString", "exampleDocumentName", "/path/to/file")
+     * Promise<ProcessDocumentResult>
+     * @param {string} pdfContent - The content of the PDF document to be processed.
+     * @param {string} documentName - The name of the document to check for existing processing and usage in operations.
+     * @param {string} filePath - The file path where the document resides.
+     * @returns {Promise<ProcessDocumentResult>} A promise that resolves to an object containing the number of chunks processed and a boolean indicating if few-shot examples were generated.
+     */
     async processDocument(pdfContent: string, documentName: string, filePath: string): Promise<ProcessDocumentResult> {
         try {
             // Check if document already exists
@@ -70,6 +80,14 @@ export class DocumentService {
         }
     }
 
+    /**
+     * Checks if a document exists in the database, returning its information if found.
+     * @example
+     * checkDocumentExists('sampleDocument')
+     * // Returns DocumentInfo object or null if not found
+     * @param {string} documentName - The name of the document to check for existence.
+     * @returns {Promise<DocumentInfo | null>} Returns a promise that resolves to the document's information or null if not found.
+     */
     private async checkDocumentExists(documentName: string): Promise<DocumentInfo | null> {
         try {
             const { data, error } = await supabase
@@ -102,6 +120,15 @@ export class DocumentService {
         }
     }
 
+    /**
+     * Processes text chunks from a PDF and stores their embeddings in a database.
+     * @example
+     * processEmbeddings("Sample PDF text content", "ExampleDocument")
+     * // Returns number of successfully processed chunks, e.g., 10
+     * @param {string} pdfContent - The content of the PDF to be processed as a single string.
+     * @param {string} documentName - The name of the document to associate with the embeddings.
+     * @returns {Promise<number>} Number of successfully processed text chunks.
+     */
     private async processEmbeddings(pdfContent: string, documentName: string): Promise<number> {
         const chunks = await this.textSplitter.splitText(pdfContent);
         const batchSize = 2;
@@ -161,6 +188,15 @@ export class DocumentService {
         return totalProcessed;
     }
 
+    /**
+     * Generates few-shot examples for a given document and stores them in the database.
+     * @example
+     * generateFewShotExamples('PDF content here', 'document123')
+     * // Returns true if few-shot examples are successfully generated or already exist.
+     * @param {string} pdfContent - The content of the PDF document as a string.
+     * @param {string} documentName - The name or identifier of the document.
+     * @returns {Promise<boolean>} Returns a promise that resolves to true if examples are generated or found, false if an error occurs.
+     */
     private async generateFewShotExamples(pdfContent: string, documentName: string): Promise<boolean> {
         try {
             // Check if few-shot examples already exist
@@ -219,6 +255,15 @@ export class DocumentService {
         }
     }
 
+    /**
+     * Processes a single document chunk to generate realistic query-answer pairs for use as training examples.
+     * @example
+     * processSingleChunkForExamples("Sample document content", 2)
+     * // Returns query-answer pairs for the specified document content chunk.
+     * @param {string} content - The content of the document chunk to process.
+     * @param {number} [chunkNumber] - The optional chunk number indicating a specific section of a larger document.
+     * @returns {Promise<string>} A promise resolving to a string containing 3-5 query-answer pairs based on the analyzed document content.
+     */
     private async processSingleChunkForExamples(content: string, chunkNumber?: number): Promise<string> {
         const response = await hfClient.chatCompletion({
             model: "openai/gpt-oss-120b",
@@ -278,6 +323,14 @@ export class DocumentService {
         return await this.getFewShotExamplesFromDB(documentName);
     }
 
+    /**
+     * Retrieves few-shot examples from the database based on the given document name.
+     * @example
+     * getFewShotExamplesFromDB('sample_document')
+     * Returns 'Example text' if found, otherwise null.
+     * @param {string} documentName - The name of the document for which to fetch few-shot examples.
+     * @returns {Promise<string | null>} The few-shot examples associated with the document or null if not found.
+     */
     private async getFewShotExamplesFromDB(documentName: string): Promise<string | null> {
         try {
             const { data, error } = await supabase
@@ -300,6 +353,15 @@ export class DocumentService {
         }
     }
 
+    /**
+     * Stores few-shot examples related to a document in the database.
+     * @example
+     * storeFewShotExamplesInDB('doc1', 'example1, example2')
+     * // No return value, but logs "Few-shot examples stored in database for document: doc1" if successful
+     * @param {string} documentName - The name of the document to associate with the few-shot examples.
+     * @param {string} fewShotExamples - The few-shot examples to be stored in the database.
+     * @returns {Promise<void>} Resolves to void when the operation is complete. Throws an error if the operation fails.
+     */
     private async storeFewShotExamplesInDB(documentName: string, fewShotExamples: string): Promise<void> {
         try {
             const { error } = await supabase
@@ -318,6 +380,13 @@ export class DocumentService {
         }
     }
 
+    /**
+     * Retrieves and processes documents from the database, grouping them by document name and counting the chunks.
+     * @example
+     * getProcessedDocuments()
+     * Returns an array of objects with properties: name, created_at, and chunk_count.
+     * @returns {Promise<any[]>} A promise that resolves to an array of processed document objects each containing name, created_at, and chunk_count.
+     */
     async getProcessedDocuments(): Promise<any[]> {
         try {
             const { data, error } = await supabase
@@ -348,6 +417,14 @@ export class DocumentService {
         }
     }
 
+    /**
+     * Deletes a document and its related few-shot examples from the database.
+     * @example
+     * deleteDocument("exampleDocument")
+     * // Returns: { deletedChunks: 5, deletedExamples: true }
+     * @param {string} documentName - The name of the document to delete.
+     * @returns {Promise<{ deletedChunks: number; deletedExamples: boolean }>} An object containing the number of deleted chunks and a boolean indicating whether few-shot examples were successfully deleted.
+     */
     async deleteDocument(documentName: string): Promise<{ deletedChunks: number; deletedExamples: boolean }> {
         try {
             // Delete document chunks

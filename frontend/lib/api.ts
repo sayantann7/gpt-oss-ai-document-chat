@@ -9,6 +9,16 @@ export class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Sends an HTTP request to a specified endpoint and returns the parsed JSON response.
+   * @example
+   * request('/api/data', { method: 'GET' })
+   * // Returns the parsed JSON data from the response
+   * @template T
+   * @param {string} endpoint - The API endpoint to send the request to.
+   * @param {RequestInit} [options={}] - Optional configurations for the request, such as headers and method.
+   * @returns {Promise<T>} A promise that resolves to the parsed JSON response of type T.
+   */
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     

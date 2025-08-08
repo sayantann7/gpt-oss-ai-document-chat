@@ -31,6 +31,14 @@ function splitTextForTokenLimit(text: string, maxTokens: number): string[] {
 }
 
 // Check if few-shot examples already exist for the document
+/**
+ * Fetches few-shot examples from the database based on the provided document name.
+ * @example
+ * getFewShotExamplesFromDB("example_document")
+ * // Returns "few-shot examples" or null if not found.
+ * @param {string} documentName - The name of the document to fetch few-shot examples for.
+ * @returns {Promise<string|null>} Resolves with few-shot examples as a string or null if not found or on error.
+ */
 async function getFewShotExamplesFromDB(documentName: string): Promise<string | null> {
     try {
         const { data, error } = await supabase
@@ -55,6 +63,15 @@ async function getFewShotExamplesFromDB(documentName: string): Promise<string | 
 }
 
 // Store few-shot examples in the database
+/**
+ * Stores few-shot examples in the database associated with a specific document name.
+ * @example
+ * storeFewShotExamplesInDB('my_document', 'example1, example2, example3')
+ * // Logs: Few-shot examples stored in database for document: my_document
+ * @param {string} documentName - The name of the document to associate with the few-shot examples.
+ * @param {string} fewShotExamples - The few-shot examples to be stored in the database.
+ * @returns {Promise<void>} Resolves when the examples are successfully stored; logs error if operation fails.
+ **/
 async function storeFewShotExamplesInDB(documentName: string, fewShotExamples: string): Promise<void> {
     try {
         const { error } = await supabase
@@ -74,6 +91,15 @@ async function storeFewShotExamplesInDB(documentName: string, fewShotExamples: s
     }
 }
 
+/**
+ * Generates or retrieves few-shot examples for a given document.
+ * @example
+ * createFewShotExamples("PDF content as string", "document_name")
+ * Returns examples as a string.
+ * @param {string} pdfContent - The content of the PDF document to generate examples from.
+ * @param {string} documentName - The name of the document used to check for existing examples in the database.
+ * @returns {Promise<string>} Promise that resolves to a string of few-shot examples.
+ */
 async function createFewShotExamples(pdfContent: string, documentName: string): Promise<string> {
     // First, check if few-shot examples already exist in the database
     console.log(`Checking for existing few-shot examples for document: ${documentName}`);
@@ -140,6 +166,15 @@ async function createFewShotExamples(pdfContent: string, documentName: string): 
 }
 
 // New optimized function that processes whole document unless it exceeds 128k tokens
+/**
+* Generates few-shot examples for a given PDF content, optimizing the process by checking for existing examples first and handling token limitations.
+* @example
+* createFewShotExamplesOptimized('pdfContentString', 'documentName')
+* 'Generated few-shot examples string'
+* @param {string} pdfContent - The content of the PDF document to generate few-shot examples from.
+* @param {string} documentName - The name of the document to check and store few-shot examples.
+* @returns {Promise<string>} The generated few-shot examples as a string.
+**/
 async function createFewShotExamplesOptimized(pdfContent: string, documentName: string): Promise<string> {
     // First, check if few-shot examples already exist in the database
     console.log(`Checking for existing few-shot examples for document: ${documentName}`);
@@ -202,6 +237,15 @@ async function createFewShotExamplesOptimized(pdfContent: string, documentName: 
     return fewShotExamples;
 }
 
+/**
+ * Processes a specific chunk of document content to generate query-answer pairs for training purposes.
+ * @example
+ * processSingleChunkForExamples("sample document content", 2)
+ * // Returns a string containing query-answer examples based on the provided document content
+ * @param {string} content - The document content to be analyzed and transformed into query-answer pairs.
+ * @param {number} [chunkNumber] - An optional number indicating the chunk of the document being processed.
+ * @returns {Promise<string>} A promise that resolves to a string containing the generated query-answer pairs.
+ */
 async function processSingleChunkForExamples(content: string, chunkNumber?: number): Promise<string> {
     const chunkInfo = chunkNumber ? ` (Chunk ${chunkNumber})` : '';
 
@@ -259,6 +303,14 @@ async function processSingleChunkForExamples(content: string, chunkNumber?: numb
     return response.choices[0].message.content ?? "";
 }
 
+/**
+ * Processes and stores embeddings of text chunks extracted from a PDF file.
+ * @example
+ * storeEmbeddedChunksAll('bajaj-2.pdf')
+ * // Returns a Promise resolving to an array of embedded chunk objects
+ * @param {string} [pdfPath='bajaj-2.pdf'] - The path to the PDF file to process.
+ * @returns {Promise<any[]>} A promise that resolves to an array of objects containing chunk content, embedding, document name, and chunk index.
+ */
 async function storeEmbeddedChunksAll(pdfPath: string = 'bajaj-2.pdf'): Promise<any[]> {
     const pdfContent = await getPdfContent(pdfPath);
 
@@ -303,6 +355,14 @@ async function storeEmbeddedChunksAll(pdfPath: string = 'bajaj-2.pdf'): Promise<
     }
 }
 
+/**
+ * Processes and stores embedded PDF content chunks into a database in batched manner.
+ * @example
+ * storeEmbeddedChunksBatched()
+ * Returns an array of objects containing chunks and their embeddings.
+ * @async
+ * @returns {Promise<any[]>} A promise that resolves to an array of objects, each containing a PDF content chunk and its embedding.
+ */
 async function storeEmbeddedChunksBatched(): Promise<any[]> {
     const pdfPath = 'bajaj-2.pdf';
     const pdfContent = await getPdfContent(pdfPath);
@@ -364,6 +424,15 @@ async function storeEmbeddedChunksBatched(): Promise<any[]> {
     }
 }
 
+/**
+ * Queries embedded chunks based on a given query to find matching documents and generates a response using few-shot examples for context.
+ * @example
+ * queryEmbeddedChunks("What is the capital of France?", "Example 1: ..., Example 2: ...")
+ * Returns the answer generated by the AI model based on the context provided.
+ * @param {string} query - The user's query for which an answer is to be generated.
+ * @param {string} fewShotExamples - Few-shot examples that provide context on how to answer questions.
+ * @returns {Promise<string>} A Promise resolving to the content of the chatbot's response.
+ */
 async function queryEmbeddedChunks(query: string, fewShotExamples: string): Promise<string> {
     const embeddingModel = await getEmbeddingPipeline();
     const output = await embeddingModel(query, { pooling: 'mean', normalize: true });
@@ -409,6 +478,15 @@ async function storeEmbeddedChunksSlow() {
     console.log("Stored Embedded Chunks (Batched):", embeddedChunks.length);
 }
 
+/**
+ * Fetches query results from a PDF document by utilizing few-shot learning examples.
+ * @example
+ * fetchQueryResults()
+ * Query Results:
+ * {results} // some sample return value demonstrated by console output
+ * @param {string} pdfPath - The path to the PDF document to be processed.
+ * @returns {Promise<void>} Logs the query results to the console.
+ */
 async function fetchQueryResults() {
     const pdfPath = 'bajaj-2.pdf';
     const documentName = pdfPath; // Use filename as document identifier
@@ -426,6 +504,15 @@ async function fetchQueryResults() {
 fetchQueryResults();
 
 // Helper function to process a single chunk for few-shot examples (optimized version)
+/**
+ * Generates high-quality question-answer pairs from a document chunk.
+ * @example
+ * processSingleChunkForExamplesOptimized("Example document content")
+ * Promise resolving to generated question-answer pairs string
+ * @param {string} chunk - The document content chunk from which to generate the question-answer pairs.
+ * @param {number} [chunkNumber] - Optional chunk number to include in the prompt for context.
+ * @returns {Promise<string>} A promise that resolves to a string containing generated question-answer pairs.
+ */
 async function processSingleChunkForExamplesOptimized(chunk: string, chunkNumber?: number): Promise<string> {
     const chunkPrefix = chunkNumber ? ` (Chunk ${chunkNumber})` : '';
 
