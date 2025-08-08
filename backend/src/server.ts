@@ -292,6 +292,115 @@ app.delete('/api/documents/:documentName', async (req, res) => {
     }
 });
 
+// Bearer token authentication middleware
+const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+    }
+
+    // For hackathon testing, accept any bearer token
+    // In production, you would validate the token
+    next();
+};
+
+// HackRX endpoint for document processing and multi-question answering
+app.post('/hackrx/run', authenticateToken, async (req, res) => {
+    try {
+        const { document_url, questions } = req.body;
+        
+        // Validate request body
+        if (!document_url || !questions || !Array.isArray(questions)) {
+            return res.status(400).json({ 
+                error: 'Invalid request body. Required: document_url (string) and questions (array)' 
+            });
+        }
+
+        console.log(`HackRX: Processing document from URL: ${document_url}`);
+        console.log(`HackRX: Number of questions: ${questions.length}`);
+
+        // Download document from URL
+        const response = await fetch(document_url);
+        if (!response.ok) {
+            return res.status(400).json({ 
+                error: `Failed to download document from URL: ${response.statusText}` 
+            });
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        
+        // Generate temporary filename
+        const tempFileName = `hackrx_${Date.now()}.pdf`;
+        const tempFilePath = path.join(__dirname, '..', 'uploads', tempFileName);
+        
+        // Ensure uploads directory exists
+        const uploadsDir = path.dirname(tempFilePath);
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        
+        // Save file temporarily
+        fs.writeFileSync(tempFilePath, buffer);
+
+        try {
+            // Extract PDF content
+            const pdfContent = await getPdfContent(tempFilePath);
+            if (!pdfContent) {
+                throw new Error('Failed to extract content from PDF');
+            }
+
+            // Process document and store embeddings
+            await documentService.processDocument(pdfContent, tempFileName, tempFilePath);
+            
+            // Process all questions
+            const answers = [];
+            for (const question of questions) {
+                try {
+                    const result = await queryService.queryDocuments(question, tempFileName);
+                    answers.push(result.answer);
+                } catch (error: any) {
+                    console.error(`Error processing question "${question}":`, error);
+                    answers.push("I couldn't find an answer to this question in the document.");
+                }
+            }
+            
+            // Clean up: delete temporary file and document data
+            if (fs.existsSync(tempFilePath)) {
+                fs.unlinkSync(tempFilePath);
+            }
+            
+            // Clean up document data from database
+            try {
+                await documentService.deleteDocument(tempFileName);
+            } catch (error) {
+                console.warn('Warning: Could not clean up document data:', error);
+            }
+            
+            // Return response in exact format specified
+            res.json({
+                answers: answers
+            });
+
+        } catch (processingError: any) {
+            // Clean up file on error
+            if (fs.existsSync(tempFilePath)) {
+                fs.unlinkSync(tempFilePath);
+            }
+            throw processingError;
+        }
+        
+    } catch (error: any) {
+        console.error('HackRX endpoint error:', error);
+        res.status(500).json({ 
+            error: 'Failed to process document and questions',
+            details: error.message 
+        });
+    }
+});
+
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Unhandled error:', error);
